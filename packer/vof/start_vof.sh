@@ -6,11 +6,10 @@ set -o pipefail
 # clone repository with the new changes using the commit hash
 update_repo() {
   sudo su vof
-  BUILD_COMMIT=$(curl http://metadata.google.internal/computeMetadata/v1/project/attributes/{{ build_commit }} -H "Metadata-Flavor: Google")
   cd /home/vof
   sudo chown -R vof app/
   echo -e "Host github.com\n\tStrictHostKeyChecking no" > ~/.ssh/config
-  echo -e "\tIdentityFile ~/.ssh/vof_tracker_key\n" >> ~/.ssh/config
+  echo -e "\tIdentityFile /home/vof/.ssh/vof_tracker_key\n" >> ~/.ssh/config
 
   cd app/
   git stash
@@ -20,8 +19,6 @@ update_repo() {
   else
     git pull origin develop
   fi
-
-  git checkout ${BUILD_COMMIT}
 }
 
 get_var() {
@@ -32,21 +29,20 @@ get_var() {
 }
 
 export PORT="${PORT:-8080}"
-export SSL_CONFIG_PATH="ssl://0.0.0.0:8080?key=/home/vof/andela_key.key&cert=/home/vof/andela_certificate.crt"
+export SSL_CONFIG_PATH="ssl://0.0.0.0:8080?key=/home/vof/andela_key.key&cert=/home/vof/andela_certificate.pem"
 export RAILS_ENV="$(get_var "railsEnv")"
-export REDIS_IP=$(get_var "redisIp")
+export REDIS_HOST=$(get_var "redisURL")
 export BUGSNAG_KEY="$(get_var "bugsnagKey")"
 export DEPLOY_ENV="$(get_var "railsEnv")"
 export VOF_PROJECT_REPO="$(get_var "projectRepo")"
-if [[ "$(get_var "railsEnv")" == "design-v2" ]]; then
-  export DEPLOY_ENV="staging"
-fi
+export GOOGLE_PROJECT_ID="$(curl -s -H 'Metadata-Flavor: Google' \
+       http://metadata.google.internal/computeMetadata/v1/project/project-id)"
 
 export BUCKET_NAME=$(get_var "bucketName")
 sudo echo "export SLACK_WEBHOOK=$(get_var "slackWebhook")" >> /home/vof/.env_setup_rc
 sudo echo "export SLACK_CHANNEL=$(get_var "slackChannel")" >> /home/vof/.env_setup_rc
 gsutil cp gs://${BUCKET_NAME}/ssl/andela_key.key /home/vof/andela_key.key
-gsutil cp gs://${BUCKET_NAME}/ssl/andela_certificate.crt /home/vof/andela_certificate.crt
+gsutil cp gs://${BUCKET_NAME}/ssl/andela_certificate.pem /home/vof/andela_certificate.pem
 
 
 export API_URL='https://api-staging.andela.com/'
@@ -62,7 +58,7 @@ fi
 update_application_yml() {
   cat <<EOF >> /home/vof/app/config/application.yml
 ACTION_CABLE_URL: '$(get_var "cableURL")'
-REDIS_URL: 'redis://${REDIS_IP}'
+REDIS_URL: 'redis://${REDIS_HOST}'
 BUGSNAG_KEY: '$(get_var "bugsnagKey")'
 DB_NAME: '$(get_var "databaseInstanceName")'
 API_URL: '${API_URL}'
@@ -170,6 +166,9 @@ EOF
 }
 
 create_secrets_yml() {
+  if [ -f /home/vof/app/config/secrets.yml ]; then
+    chmod 0666 /home/vof/app/config/secrets.yml
+  fi
   cat <<EOF > /home/vof/app/config/secrets.yml
 production:
   secret_key_base: "$(openssl rand -hex 64)"
@@ -208,7 +207,7 @@ authenticate_service_account() {
 }
 
 authorize_database_access_networks() {
-  CURRENTIPS="$(gcloud compute instances list --project vof-tracker-app | grep ${RAILS_ENV}-vof-app-instance | awk -v ORS=, '{if ($5) print $5}' | sed 's/,$//')"
+  CURRENTIPS="$(gcloud compute instances list --project $GOOGLE_PROJECT_ID | grep vof-${RAILS_ENV}-app-instance | awk -v ORS=, '{if ($5) print $5}' | sed 's/,$//')"
 
   # authorize certain IPs to access staging db but not the production db
   if [ "$RAILS_ENV" != "production" ]; then
@@ -216,15 +215,10 @@ authorize_database_access_networks() {
   fi
 
   # ensure replica's authorized networks are also updated
-  for sqlInstanceName in $(gcloud sql instances list --project vof-tracker-app | grep ${RAILS_ENV}-vof-database-instance | awk -v ORS=" " '{if ($1 !~ /production-vof-database-instance-vew0wndaum8/) print $1}'); do
+  for sqlInstanceName in $(gcloud sql instances list --project $GOOGLE_PROJECT_ID | grep shared-database-instance | awk -v ORS=" " '{if ($1 !~ /production-vof-database-instance-vew0wndaum8/) print $1}'); do
     gcloud sql instances patch $sqlInstanceName --quiet --authorized-networks=$CURRENTIPS,41.75.89.154,158.106.201.190,41.215.245.162,108.41.204.165,14.140.245.142,182.74.31.70,54.208.19.24,35.166.153.63,54.208.19.13,54.69.5.5,52.36.120.247,52.45.79.49,34.199.147.194
   done
 
-}
-
-authorize_redis_access_ips() {
-  CURRENTIPS="$(gcloud compute instances list --project vof-tracker-app | grep ${RAILS_ENV}-vof-app-instance | awk -v ORS=, '{if ($5) print $5}' | sed 's/,$//')"
-  gcloud compute firewall-rules update vof-${RAILS_ENV}-redis-firewall --source-ranges=${CURRENTIPS}
 }
 
 get_database_dump_file() {
@@ -343,13 +337,12 @@ main() {
   create_pgpass_file
   edit_postgresql_backup_file
   update_application_yml
-  create_secrets_yml
   create_vof_supervisord_conf
   authenticate_service_account
   update_repo
+  create_secrets_yml
   set +o errexit
   set +o pipefail
-    authorize_redis_access_ips
     authorize_database_access_networks
   set -o errexit
   set -o pipefail

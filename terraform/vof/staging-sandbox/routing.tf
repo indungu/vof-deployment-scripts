@@ -28,7 +28,7 @@ resource "google_compute_ssl_certificate" "ssl-certificate" {
   name_prefix = "${var.project_name}-certificate-"
   description = "${upper(var.project_name)} HTTPS certificate"
   private_key = "${file("../../../shared/andela_key.key")}"
-  certificate = "${file("../../../shared/andela_certificate.crt")}"
+  certificate = "${file("../../../shared/andela_certificate.pem")}"
 
   lifecycle {
     create_before_destroy = true

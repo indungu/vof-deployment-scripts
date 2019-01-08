@@ -8,6 +8,11 @@
     src: start_vof.sh
     dest: /home/vof
 
+- name: change start script file permissions
+  file:
+    path: /home/vof/start_vof.sh
+    mode: 0751
+
 - name: copy backup script to home/vof directory
   copy:
     src: backup.sh

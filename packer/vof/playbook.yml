@@ -5,9 +5,8 @@
   gather_facts: no
   vars:
     ansible_python_interpreter: '/usr/bin/python3'
-    vof_path: '{{lookup("env", "vof_path")}}'
-    bucket_name: '{{lookup("env", "bucket_name")}}'
-    service_account_json: '{{lookup("env", "service_account_json")}}'
+    bucket_name: '{{lookup("env", "BUCKET_NAME")}}'
+    service_account_json: '{{lookup("env", "SERVICE_ACCOUNT_JSON")}}'
   roles:
     - setup
     - copy-files

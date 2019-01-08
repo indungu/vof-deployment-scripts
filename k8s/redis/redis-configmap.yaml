@@ -5,6 +5,7 @@ metadata:
   namespace: default
 data:
   redis.conf: |
+    databases 24
     dbfilename "dump.rdb"
     dir /data
     save 3600 1

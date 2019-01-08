@@ -81,7 +81,7 @@ resource "google_compute_instance_template" "template" {
     cableURL                         = "${var.cable_url}"
     databasePort                     = "5432"
     databaseName                     = "${format("%s-%s", var.project_name, var.environment )}"
-    redisIp                          = "${var.redis_domain}:6379"
+    redisURL                         = "${format("%s%s", var.redis_domain, var.redis_db )}"
     railsEnv                         = "${var.environment}"
     bucketName                       = "${var.bucket}"
     slackChannel                     = "${var.slack_channel}"
@@ -94,8 +94,8 @@ resource "google_compute_instance_template" "template" {
     google_storage_secret_access_key = "${var.google_storage_secret_access_key}"
     dbBackupNotificationToken        = "${var.db_backup_notification_token}"
     databaseInstanceName             = "${var.shared_database_instance_name}"
-    databaseUser                     = "${format("%s-%s", var.project_name, var.environment)}"
-    databasePassword                 = "${format("%s-%s", var.project_name, var.environment)}"
+    databaseUser                     = "${random_id.database_username.b64}"
+    databasePassword                 = "${random_id.database_password.b64}"
     databaseHost                     = "${var.shared_database_instance_ip}"
   }
 

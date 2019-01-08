@@ -1,7 +1,6 @@
 {
   "variables": {
     "service_account_json": "../../shared/account.json",
-    "vof_path": "{{env `VOF_PATH`}}",
     "env_name": "{{env `RAILS_ENV`}}",
     "project_id": "{{env `PROJECT_ID`}}",
     "bucket_name": "{{env `BUCKET_NAME`}}"

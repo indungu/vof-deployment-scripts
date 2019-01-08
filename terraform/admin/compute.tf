@@ -82,8 +82,8 @@ resource "google_compute_firewall" "bastion_host" {
   target_tags   = ["${format("%s-bastion-host", var.project_name)}"]
 }
 
-resource "google_container_cluster" "admin-redis-elk-cluster" {
-  name               = "redis-elk-cluster"
+resource "google_container_cluster" "admin-redis-cluster" {
+  name               = "apprenticeship-redis-cluster"
   zone               = "europe-west1-b"
   initial_node_count = 2
   network = "${module.network.self_link}"

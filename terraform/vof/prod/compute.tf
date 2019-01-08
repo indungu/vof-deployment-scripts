@@ -70,7 +70,7 @@ resource "google_compute_instance_template" "template" {
     cableURL                         = "${var.cable_url}"
     databasePort                     = "5432"
     databaseName                     = "${format("%s-%s", var.project_name, var.environment )}"
-    redisIp                          = "${var.redis_domain}:6379"
+    redisURL                          = "${var.redis_domain}:6379"
     railsEnv                         = "${var.environment}"
     bucketName                       = "${var.bucket}"
     slackChannel                     = "${var.slack_channel}"

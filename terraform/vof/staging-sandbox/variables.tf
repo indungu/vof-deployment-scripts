@@ -8,7 +8,12 @@ variable "region" {
 variable "project_name" {}
 
 variable "redis_domain" {
-  default = "apprenticeship-redis.andela.com"
+  default = "apprenticeship-redis.andela.com:6379/"
+}
+
+variable "redis_db" {
+  type = "string"
+  default = "1"
 }
 
 variable "zone" {
@@ -33,7 +38,7 @@ variable "google_project_id" {
 
 variable "machine_type" {
   type    = "string"
-  default = "g1-small"
+  default = "n1-standard-1"
 }
 
 variable "credential_file" {

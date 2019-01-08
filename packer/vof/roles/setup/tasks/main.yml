@@ -7,11 +7,7 @@
   file:
     path: /home/vof
     owner: vof
-
-- name: start supervisor
-  service:
-    name: supervisor
-    state: started
+    group: vof
 
 - name: Download ssh private key
   command: |
@@ -41,6 +37,7 @@
     owner: vof
 
 - name: clone repository
+  become: vof
   git:
     repo: 'git@github.com:andela/vof-tracker.git'
     dest: /home/vof/app
@@ -51,3 +48,13 @@
   file:
     path: /home/vof/app
     mode: 0777
+
+- name: install required gems
+  command: bundle install
+  args:
+    chdir: /home/vof/app
+
+- name: start supervisor
+  service:
+    name: supervisor
+    state: started
