@@ -1,6 +1,6 @@
 #!/bin/bash
 
-:'
+: '
 This utility script is intended to automate the setup of the Redis Replication set.
 Once the StatefulSet app is deployed on the kubernetes cluster of choice, this script
 should be run to set up the replica chain.

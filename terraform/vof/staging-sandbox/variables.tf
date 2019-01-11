@@ -7,6 +7,10 @@ variable "region" {
 
 variable "project_name" {}
 
+variable "redis_password" {
+  type = "string"
+}
+
 variable "redis_domain" {
   default = "apprenticeship-redis.andela.com:6379/"
 }

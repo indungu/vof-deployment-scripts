@@ -65,14 +65,6 @@ variable "elk_source_ranges" {
   default = ["0.0.0.0/0"]
 }
 
-variable "elk_server_image" {
-  default = "ubuntu-1604-xenial-v20180912"
-}
-
-variable "redis_server_image" {
-  default = "ubuntu-1604-xenial-v20180912"
-}
-
 variable "admin_cluster_master_password" {
   type = "string"
 }

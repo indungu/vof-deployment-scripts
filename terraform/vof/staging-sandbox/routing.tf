@@ -2,7 +2,7 @@
 resource "google_compute_global_forwarding_rule" "http" {
   # vof-production-http
   name       = "${format("%s-%s-http", var.project_name, var.environment)}"
-  ip_address = "${google_compute_global_address.global_static_ip.address}"
+  ip_address = "${var.global_static_ip}"
   target     = "${google_compute_target_http_proxy.http-proxy.self_link}"
   port_range = "80"
 }
@@ -19,7 +19,7 @@ resource "google_compute_target_http_proxy" "http-proxy" {
 resource "google_compute_global_forwarding_rule" "https" {
   # vof-production-https
   name       = "${format("%s-%s-https", var.project_name, var.environment)}"
-  ip_address = "${google_compute_global_address.global_static_ip.address}"
+  ip_address = "${var.global_static_ip}"
   target     = "${google_compute_target_https_proxy.https-proxy.self_link}"
   port_range = "443"
 }
@@ -48,7 +48,7 @@ resource "google_compute_url_map" "http-url-map" {
   default_service = "${google_compute_backend_service.web.self_link}"
 
   host_rule {
-    hosts        = ["${google_compute_global_address.global_static_ip.address}"]
+    hosts        = ["${var.global_static_ip}"]
     path_matcher = "allpaths"
   }
 

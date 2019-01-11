@@ -87,7 +87,7 @@ resource "google_container_cluster" "admin-redis-cluster" {
   zone               = "europe-west1-b"
   initial_node_count = 2
   network = "${module.network.self_link}"
-  subnetwork = "${module.network.public_network_name}"
+  subnetwork = "${module.network.private_network_name}"
 
   master_auth {
     username = "apprenticeshipadmin"
@@ -106,6 +106,6 @@ resource "google_container_cluster" "admin-redis-cluster" {
       project_name = "apprenticeship"
     }
 
-    tags = ["apprenticeship", "elk", "redis"]
+    tags = ["apprenticeship", "redis"]
   }
 }

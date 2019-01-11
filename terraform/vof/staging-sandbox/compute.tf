@@ -81,7 +81,7 @@ resource "google_compute_instance_template" "template" {
     cableURL                         = "${var.cable_url}"
     databasePort                     = "5432"
     databaseName                     = "${format("%s-%s", var.project_name, var.environment )}"
-    redisURL                         = "${format("%s%s", var.redis_domain, var.redis_db )}"
+    redisURL                         = "${format(":%s@%s/%s", var.redis_password, var.redis_domain, var.redis_db )}"
     railsEnv                         = "${var.environment}"
     bucketName                       = "${var.bucket}"
     slackChannel                     = "${var.slack_channel}"
@@ -147,8 +147,4 @@ resource "google_compute_https_health_check" "healthcheck" {
   timeout_sec         = "${var.timeout_sec}"
   unhealthy_threshold = "${var.unhealthy_threshold}"
   healthy_threshold   = "${var.healthy_threshold}"
-}
-
-resource "google_compute_global_address" "global_static_ip" {
-  name = "${format("%s-%s-global-static-ip", var.project_name, var.environment)}"
 }
